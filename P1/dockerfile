@@ -1,17 +1,17 @@
 # Use an official Python runtime as a parent image
-FROM python:3.8-slim-buster
+FROM python:3.8.12-slim-buster
 
 # Set the working directory in the container to /app
-WORKDIR /app
+WORKDIR /usr/src/app
 
-# Add the current directory contents into the container at /app
-ADD . /app
+# Copy the current directory contents into the container at /usr/src/app
+COPY . .
 
 # Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
 # Make port 80 available to the world outside this container
 EXPOSE 80
 
-# Run app.py when the container launches
-CMD ["python", "app.py"]
+# Set the entrypoint to the shell script
+ENTRYPOINT ["/usr/src/app/entrypoint.sh"]
