@@ -40,6 +40,7 @@ dependencies:
   local_rembg: any
   path_provider: any
   permission_handler: any
+  http: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

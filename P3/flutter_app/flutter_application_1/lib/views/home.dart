@@ -1,8 +1,10 @@
 // home.dart
 import 'package:flutter/material.dart';
 
+
 class Home extends StatelessWidget {
-  const Home({super.key});
+  final int? userId;
+  const Home({Key? key, required this.userId}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +17,7 @@ class Home extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text("Agendamento de Notificações",
+            const Text("Galeria de Imagens",
             style: TextStyle(color: Colors.white, fontSize: 24),),
             IconButton(
               onPressed: () {
@@ -37,7 +39,7 @@ class Home extends StatelessWidget {
             IconButton(
               onPressed: () {
                 // Navegar para a tela de remoção de fundo de imagens
-                Navigator.pushNamed(context, '/remove_background');
+                Navigator.pushNamed(context, '/remove_background', arguments: {'userId': userId});
               },
               icon: ClipRRect(
                 borderRadius: BorderRadius.circular(20.0),

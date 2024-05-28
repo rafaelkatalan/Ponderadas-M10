@@ -1,7 +1,8 @@
-import 'package:encontro_08/views/home.dart';
-import 'package:encontro_08/views/local_notifications.dart';
+import '../views/home.dart';
+import '../views/local_notifications.dart';
 import 'package:flutter/material.dart';
 import '../views/remove_background.dart';
+import '../views/login_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -19,11 +20,12 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         useMaterial3: true,
       ),
-      initialRoute: '/home',
+      initialRoute: '/login',
       routes: {
-        '/home': (context) => const Home(),
-        '/local_notifications': (context) => const LocalNotifications(),
-        '/remove_background': (context) => const RemoveBackground(title: 'Remove Background'),
+        '/home': (context) => const Home(userId: 1,),
+        '/local_notifications': (context) => const ImageListPage(userId: 1,),
+        '/remove_background': (context) => const RemoveBackground(userId: 1,),
+        '/login': (context) => const LoginPage(),
       },
     );
   }

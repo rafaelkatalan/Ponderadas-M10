@@ -14,7 +14,7 @@ def StartDb():
             ID SERIAL PRIMARY KEY,
             USER_ID INT,
             IMAGE VARCHAR,
-            EDITED_IMAGE VARCHAR,
+            EDITED_IMAGE VARCHAR
         );
         ''')
         

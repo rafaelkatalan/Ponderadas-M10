@@ -1,12 +1,13 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:local_rembg/local_rembg.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:http/http.dart' as http;
 
 enum ProcessStatus {
   loading,
@@ -15,37 +16,15 @@ enum ProcessStatus {
   none,
 }
 
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Local Remove Background',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent),
-        useMaterial3: true,
-      ),
-      home: const RemoveBackground(title: 'Background Remover'),
-    );
-  }
-}
-
 class RemoveBackground extends StatefulWidget {
-  const RemoveBackground({super.key, required this.title});
-
-  final String title;
+  const RemoveBackground({Key? key, required this.userId}) : super(key: key);
+  final int? userId;
 
   @override
-  State<RemoveBackground> createState() => _MyHomePageState();
+  State<RemoveBackground> createState() => _ImageToBase64State();
 }
 
-class _MyHomePageState extends State<RemoveBackground> {
+class _ImageToBase64State extends State<RemoveBackground> {
   final ImagePicker picker = ImagePicker();
   ProcessStatus status = ProcessStatus.none;
   String? message;
@@ -60,22 +39,11 @@ class _MyHomePageState extends State<RemoveBackground> {
       });
 
       try {
-        LocalRembgResultModel localRembgResultModel =
-            await LocalRembg.removeBackground(
-          imagePath: pickedFile.path,
-        );
-
-        if (localRembgResultModel.status == 1 && localRembgResultModel.imageBytes != null) {
-          imageBytes = Uint8List.fromList(localRembgResultModel.imageBytes!);
-          setState(() {
-            status = ProcessStatus.success;
-          });
-        } else {
-          message = localRembgResultModel.errorMessage ?? 'Failed to process image';
-          setState(() {
-            status = ProcessStatus.failure;
-          });
-        }
+        final bytes = await pickedFile.readAsBytes();
+        imageBytes = bytes;
+        setState(() {
+          status = ProcessStatus.success;
+        });
       } catch (e) {
         message = 'Exception: $e';
         setState(() {
@@ -85,13 +53,54 @@ class _MyHomePageState extends State<RemoveBackground> {
     }
   }
 
+  Future<void> _sendImageToServer() async {
+    if (imageBytes == null) return;
+
+    final base64Image = base64Encode(imageBytes!);
+    print("Base64 Image: $base64Image"); // Debugging: Print base64 string
+
+    final response = await http.post(
+      Uri.parse('http://localhost:8002/upload_image'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'Image': base64Image, 'userId': widget.userId}),
+    );
+
+    print("Response status: ${response.statusCode}"); // Debugging: Print response status
+    print("Response body: ${response.body}"); // Debugging: Print response body
+
+    if (response.statusCode == 200) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text("Success"),
+            content: const Text("Image sent successfully!"),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.pushNamed(context, '/local_notifications', arguments: {'userId':widget.userId}); // Go back to the previous page
+                },
+                child: const Text("OK"),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to send image to server')),
+      );
+    }
+  }
+
   Future<void> _saveImage() async {
     if (imageBytes == null) return;
 
     if (await Permission.storage.request().isGranted) {
       final directory = await getExternalStorageDirectory();
       if (directory != null) {
-        final path = '${directory.path}/processed_image.png';
+        final path = '${directory.path}/selected_image.png';
         final file = File(path);
         await file.writeAsBytes(imageBytes!);
 
@@ -101,7 +110,7 @@ class _MyHomePageState extends State<RemoveBackground> {
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Storage permission not granted')),
+        const SnackBar(content: Text('Storage permission not granted')),
       );
     }
   }
@@ -112,7 +121,11 @@ class _MyHomePageState extends State<RemoveBackground> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
+        title: Text(
+          'Remove Background',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onPrimary,
+          ),)
       ),
       body: Center(
         child: Column(
@@ -148,9 +161,17 @@ class _MyHomePageState extends State<RemoveBackground> {
               ),
             const SizedBox(height: 20),
             if (imageBytes != null && status == ProcessStatus.success)
-              ElevatedButton(
-                onPressed: _saveImage,
-                child: const Text('Save Image'),
+              Column(
+                children: [
+                  ElevatedButton(
+                    onPressed: _saveImage,
+                    child: const Text('Save Image'),
+                  ),
+                  ElevatedButton(
+                    onPressed: _sendImageToServer,
+                    child: const Text('Send Image to Server'),
+                  ),
+                ],
               ),
           ],
         ),

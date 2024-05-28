@@ -2,7 +2,7 @@ services:
   web:
     build: ./
     ports:
-      - "8000:8000"
+      - "8002:8002"
     restart: always
   POSTGRES_IMAGE:
     image: postgres
@@ -11,10 +11,10 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: POSTGRES_IMAGE
     ports:
-      - "5432:5432"
+      - "5434:5432"
     restart: always
   adminer:
     image: adminer
     ports:
-      - "8080:8080"
+      - "8082:8082"
     restart: always

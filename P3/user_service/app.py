@@ -31,8 +31,9 @@ def New_User(User: User):
 
 @app.post("/login")
 def Login(user: User):
-    if login(user.name, user.password):
-        return {"message": "Login successful"}
+    id = login(user.name, user.password)
+    if id!=-1:
+        return id
     else:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 

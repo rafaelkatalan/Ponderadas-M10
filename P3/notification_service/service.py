@@ -3,8 +3,8 @@ import numpy as np
 import cv2
 import base64
 
-conn = psycopg2.connect(host='POSTGRES_USER', port=5432, user='postgres',
-                        password='postgres', dbname='POSTGRES_USER')
+conn = psycopg2.connect(host='POSTGRES_IMAGE', port=5432, user='postgres',
+                        password='postgres', dbname='POSTGRES_IMAGE')
 
 def StartDb():
     # Database initialization logic here
@@ -20,6 +20,7 @@ def remove_background(image: str):
         contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         mask = cv2.drawContours(np.zeros_like(gray), contours, -1, (255), thickness=cv2.FILLED)
         result = cv2.bitwise_and(image, image, mask=mask)
+        result[mask == 0] = [255, 255, 255]
         _, buffer = cv2.imencode('.jpg', result)
         image_base64 = base64.b64encode(buffer).decode('utf-8')
         return image_base64
@@ -37,7 +38,7 @@ def save_image(user_id: int, image: str, edited_image: str) -> bool:
 
 def get_images(user_id: int):
     cur = conn.cursor()
-    cur.execute('SELECT IMAGE, EDITED_IMAGE FROM IMAGES WHERE USER_ID = %s', (user_id,))
-    images = cur.fetchall()
+    cur.execute('SELECT EDITED_IMAGE FROM IMAGES WHERE USER_ID = %s', (user_id,))
+    images = [image[0] for image in cur.fetchall()]
     cur.close()
     return images

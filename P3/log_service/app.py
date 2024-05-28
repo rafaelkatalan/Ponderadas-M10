@@ -31,7 +31,7 @@ app.add_middleware(
 
 @app.post("/login_log")
 def LoginLog(User: User):
-    login_log(User.name, User.id)
+    login_log(User.id, User.name)
     return True
 
 @app.post("/image_log")
@@ -40,4 +40,4 @@ def ImageLog(imageAction: ImageAction):
     return True
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8001)
