@@ -31,7 +31,7 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (response.statusCode == 200) {
-        if (response.body != -1) {
+        if (response.body != '-1') {
           await http.post(
             Uri.parse('http://localhost:8001/login_log'),
             headers: <String, String>{
@@ -62,6 +62,38 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  Future<void> _createUser() async {
+    final username = _usernameController.text;
+    final password = _passwordController.text;
+
+    try {
+      final response = await http.post(
+        Uri.parse('http://localhost:8000/newUser'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, String>{
+          'name': username,
+          'password': password,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          _errorMessage = 'User created successfully. Please log in.';
+        });
+      } else {
+        setState(() {
+          _errorMessage = 'Error creating user';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Error creating user: $e';
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,6 +118,11 @@ class _LoginPageState extends State<LoginPage> {
             ElevatedButton(
               onPressed: _login,
               child: const Text('Login'),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _createUser,
+              child: const Text('Create Account'),
             ),
             const SizedBox(height: 20),
             Text(
