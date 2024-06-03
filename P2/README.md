@@ -1,7 +1,3 @@
-Claro! Aqui está o README atualizado com essa informação:
-
----
-
 # To-Do List App
 
 Este é um aplicativo de lista de tarefas simples, composto por um frontend em Flutter e um backend em FastAPI. O aplicativo permite que os usuários visualizem, adicionem e marquem tarefas como concluídas.
